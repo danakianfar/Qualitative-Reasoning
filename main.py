@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import itertools
 from transition import Transition
+from sets import Set
 
 # Variable ordering [I V H P O]
 
@@ -83,8 +84,22 @@ G, T = create_graph(S)
 
 print ' -----'
 
+s1 = Set([])
+s2 = Set([])
+s0 = Set([])
+
 for t in T:
+    s0.add(str(t.origin))
+    s0.add(str(t.destination))
+
+    s1.add(str(t.origin))
+    s2.add(str(t.destination))
     print t.prettyprint()
+
+print len(s0)
+
+print len(s1)
+print len(s2)
 
 print len(T)
 
