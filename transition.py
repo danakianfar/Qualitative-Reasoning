@@ -51,3 +51,5 @@ class Transition():
         if np.sign(self.transition[o]) != -np.sign(self.destination[dv]):
             print '!!! Invalid by Influence propagation (I-): %s' % self.prettyprint()
             return False
+
+        return True
