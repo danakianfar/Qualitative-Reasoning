@@ -19,13 +19,6 @@ class Derivative:
         self.domain = domain
 
 
-class State:
-
-    def __init__(self, name, vars):
-        self.name = name
-        self.vars = vars
-
-
 # 0, plus, max domain for all the variables
 var_dom = [0, 1, 2]
 
@@ -50,3 +43,31 @@ for i in range(len(states)):
     S.append( np.asarray(states[i][0] + states[i][1]))
 
 S = np.asarray(S)
+
+print np.shape(S)
+
+def prune_states(S):
+    nvars = np.shape(S)[1]/2
+    del_states = []
+    for s_ix in range(len(S)):
+        s = S[s_ix]
+        for i in range(nvars):
+            if s[i] == 2 and s[i+nvars] == 1:
+                del_states.append(s_ix)
+                break
+            if s[i] == 0 and s[i+nvars] == -1:
+                del_states.append(s_ix)
+                break
+        for i in range(1,nvars):
+            if s[i] != s[i + nvars]:
+                del_states.append(s_ix)
+                break
+    print len(del_states)
+    S = np.delete(S,del_states, axis=0)
+    return S
+
+S = prune_states(S)
+
+print np.shape(S)
+
+print S[0:100,:]
