@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 import itertools
+from transition import Transition
+
 
 # 0, plus, max domain for all the variables
 var_dom = [0, 1, 2]
@@ -21,9 +23,6 @@ S = []
 for i in range(len(states)):
     S.append( np.asarray(states[i][0] + states[i][1]))
 S = np.asarray(S)
-
-def valid_transition(t):
-    return not(2 in abs(t))
 
 def prune_states(S):
     # number of variables
@@ -59,22 +58,20 @@ def prune_states(S):
 
 S = prune_states(S)
 
-#L=["hello", "world", "how", "are", "you"]
-G = nx.complete_graph(5)
-nx.draw(G)
+
+def create_graph(S):
+    G = nx.DiGraph()
+    n_states = len(S)
+    for orig_ix in range(n_states):
+        for dest_ix in range(orig_ix + 1, n_states):
+            tr = Transition(S[orig_ix],S[dest_ix])
+            #if valid_transition(S[orig_ix]-S[dest_ix]):
+            if tr.checkValidity():
+                G.add_edge(orig_ix,dest_ix)
+    return G
+
+G = create_graph(S)
+
+pos = nx.spring_layout(G)
+nx.draw(G, pos)
 plt.show()
-
-
-G2 = nx.DiGraph(G)
-nx.draw(G2)
-plt.show()
-
-#nx.relabel_nodes(G,dict(enumerate(L)), copy = False)
-
-
-print S[-7].shape[0]
-
-print valid_transition(S[-6] - S[-7])
-print valid_transition(S[3] - S[42])
-
-
