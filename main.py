@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import networkx as nx
 import itertools
 
 # 0, plus, max domain for all the variables
@@ -20,8 +22,8 @@ for i in range(len(states)):
     S.append( np.asarray(states[i][0] + states[i][1]))
 S = np.asarray(S)
 
-print np.shape(S)
-
+def valid_transition(t):
+    return not(2 in abs(t))
 
 def prune_states(S):
     # number of variables
@@ -32,7 +34,7 @@ def prune_states(S):
     for s_ix in range(len(S)):
         s = S[s_ix]
         # exogenous variable can not have ambiguous derivative
-        if s[nvars] == -2:
+        if s[nvars] < -1:
             del_states.append(s_ix)
             continue
         for i in range(nvars):
@@ -50,29 +52,29 @@ def prune_states(S):
                 if (s[i] != s[j]) or (s[i + nvars] != s[j + nvars]):
                     del_states.append(s_ix)
                     break
-    print len(del_states)
+    print 'Number of states prunned: ' + str(len(del_states))
     # deletes the invalid states
     S = np.delete(S,del_states, axis=0)
     return S
 
 S = prune_states(S)
 
-print np.shape(S)
+#L=["hello", "world", "how", "are", "you"]
+G = nx.complete_graph(5)
+nx.draw(G)
+plt.show()
 
-print S
 
-print '----'
+G2 = nx.DiGraph(G)
+nx.draw(G2)
+plt.show()
 
-print S[3]
+#nx.relabel_nodes(G,dict(enumerate(L)), copy = False)
 
-print S[42]
-
-print S[3] - S[42]
-
-print '----'
-
-print S[-6]
 
 print S[-7].shape[0]
 
-print S[-6] - S[-7]
+print valid_transition(S[-6] - S[-7])
+print valid_transition(S[3] - S[42])
+
+
