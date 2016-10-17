@@ -73,6 +73,6 @@ print '----'
 
 print S[-6]
 
-print S[-7]
+print S[-7].shape[0]
 
 print S[-6] - S[-7]
