@@ -33,8 +33,8 @@ class Transition():
             return False
 
         ## 2. A change in value can only be committed after a change in its derivative
-        for i in range(self.numVars):
-            if np.logical_not(np.logical_xor(np.sign(self.origin[delta_idx]), np.sign(self.transition[val_idx]))).any():
+        if not(sum(self.transition[delta_idx]) > 0 and sum(self.transition[val_idx]) == 0):
+            if np.logical_not(np.array_equal(np.sign(self.origin[delta_idx]), np.sign(self.transition[val_idx]))):
                 print '!!! Invalid by delta-propagation: %s' + self.prettyprint()
                 return False
 
@@ -43,12 +43,12 @@ class Transition():
         ## 3. Influence propagation: a change in a value in variable V1 should immediately propagate a change
                 # in the same direction for the derivatives of all variables in its influence range
         # I+ relations:
-        if np.sign(self.transition[i]) != np.sign(self.destination[dv]):
+        if self.origin[i] > 0 and (np.sign(self.transition[i]) != np.sign(self.destination[dv])):
             print '!!! Invalid by Influence propagation (I+): %s' % self.prettyprint()
             return False
 
         # I- relations:
-        if np.sign(self.transition[o]) != -np.sign(self.destination[dv]):
+        if self.origin[o] >0 and (np.sign(self.transition[o]) != -np.sign(self.destination[dv])):
             print '!!! Invalid by Influence propagation (I-): %s' % self.prettyprint()
             return False
 
