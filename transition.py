@@ -1,5 +1,33 @@
 import numpy as np
 
+val_idx = range(5)
+delta_idx = range(5, 10)
+numVars = len(val_idx)
+i = 0
+v = 1
+h = 2
+p = 3
+o = 4
+di = 5
+dv = 6
+dh = 7
+dp = 8
+do = 9
+
+def d(x):
+    if x == 0:
+        return '0'
+    elif x == 1:
+        return '+'
+    elif x == 2:
+        return 'm'
+    elif x == -1:
+        return '-'
+    elif x < -50 or x > 50:
+        return '?'
+    else:
+        print 'what: '+str(x)
+
 class Transition():
 
     def __init__(self, origin, destination):
@@ -8,23 +36,16 @@ class Transition():
         self.destination = destination
         self.numVars = self.transition.shape[0] / 2
 
+
     def prettyprint(self):
-        return str(self.origin) + '  --->  '+str(self.transition)+'  --->  '+str(self.destination)
+        res = '------\n'
+        for j in range(len(val_idx)):
+            res += d(self.origin[j])+d(self.origin[j+numVars])+'\t'+d(self.transition[j])+d(self.transition[j+numVars])+'\t'+d(self.destination[j])+d(self.destination[j+numVars])+'\n'
+        res += '------'
+        return res
 
 
     def checkValidity(self):
-        val_idx = range(5)
-        delta_idx = range(5,10)
-        i = 0
-        v = 1
-        h = 2
-        p = 3
-        o = 4
-        di = 5
-        dv = 6
-        dh = 7
-        dp = 8
-        do = 9
 
         # Local conditions
         ## 1. Epsilon order rule: only 1 delta in quantity of derivative at a time
@@ -35,7 +56,7 @@ class Transition():
         ## 2. A change in value can only be committed after a change in its derivative
         if not(sum(self.transition[delta_idx]) > 0 and sum(self.transition[val_idx]) == 0):
             if np.logical_not(np.array_equal(np.sign(self.origin[delta_idx]), np.sign(self.transition[val_idx]))):
-                print '!!! Invalid by delta-propagation: %s' + self.prettyprint()
+                print '!!! Invalid by delta-propagation: %s' % self.prettyprint()
                 return False
 
 
