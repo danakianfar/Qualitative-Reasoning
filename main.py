@@ -70,16 +70,35 @@ def create_graph(S):
     # creates a directed graph
     G = nx.DiGraph()
     n_states = len(S)
-
+    T = []
     for orig_ix in range(n_states):
         for dest_ix in range(orig_ix, n_states):
             tr = Transition(S[orig_ix],S[dest_ix])
             if tr.checkValidity():
+                T.append(tr)
                 G.add_edge(orig_ix,dest_ix)
-    return G
+    return G, T
 
-G = create_graph(S)
+G, T = create_graph(S)
+
+print ' -----'
+
+for t in T:
+    print t.prettyprint()
+
+print len(T)
 
 pos = nx.spring_layout(G)
+
+for v in G.nodes():
+    G.node[v]['state']=v
+
 nx.draw(G, pos)
+node_labels = nx.get_node_attributes(G,'state')
+nx.draw_networkx_labels(G, pos, labels = node_labels)
+edge_labels = nx.get_edge_attributes(G,'state')
+nx.draw_networkx_edge_labels(G, pos, labels = edge_labels)
+#plt.savefig('this.png')
 plt.show()
+
+

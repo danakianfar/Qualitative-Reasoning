@@ -9,7 +9,7 @@ class Transition():
         self.numVars = self.transition.shape[0] / 2
 
     def prettyprint(self):
-        return str(self.origin) + '--'+str(self.transition)+'-->'+str(self.destination)
+        return str(self.origin) + '  --->  '+str(self.transition)+'  --->  '+str(self.destination)
 
 
     def checkValidity(self):
