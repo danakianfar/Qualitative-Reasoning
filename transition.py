@@ -9,7 +9,7 @@ class Transition():
         self.numVars = self.transition.shape[0] / 2
 
     def prettyprint(self):
-        return str(self.origin) + '--'+str(self.var)+'-->'+self.destination
+        return str(self.origin) + '--'+str(self.transition)+'-->'+str(self.destination)
 
 
     def checkValidity(self):
@@ -34,7 +34,7 @@ class Transition():
 
         ## 2. A change in value can only be committed after a change in its derivative
         for i in range(self.numVars):
-            if np.logical_not(np.logical_xor(np.sign(self.origin[delta_idx]), np.sign(self.transition[val_idx]))):
+            if np.logical_not(np.logical_xor(np.sign(self.origin[delta_idx]), np.sign(self.transition[val_idx]))).any():
                 print '!!! Invalid by delta-propagation: %s' + self.prettyprint()
                 return False
 
