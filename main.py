@@ -32,7 +32,7 @@ def prune_states(S):
     for s_ix in range(len(S)):
         s = S[s_ix]
         # exogenous variable can not have ambiguous derivative
-        if s[nvars] == -2:
+        if s[nvars] < -1:
             del_states.append(s_ix)
             continue
         for i in range(nvars):
