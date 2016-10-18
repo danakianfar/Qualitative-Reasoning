@@ -47,6 +47,11 @@ class Transition():
 
     def checkValidity(self):
 
+        # debugging
+        if str(self.origin) == '[ 0.  1.  1.  1.  1.  0. -1. -1. -1. -1.]' and self.destination ==  '[ 0.  0.  0.  0.  0.  0. 0. 0. 0. 0.]':
+            print 'ah'
+
+
         # Local conditions
         ## 1. Epsilon order rule: only 1 delta in quantity of derivative at a time
         if 2 in np.abs(self.transition):
@@ -56,7 +61,7 @@ class Transition():
         ## 2. A change in value can only be committed after a change in its derivative
         if not(sum(self.transition[delta_idx]) > 0 and sum(self.transition[val_idx]) == 0):
             if np.logical_not(np.array_equal(np.sign(self.origin[delta_idx]), np.sign(self.transition[val_idx]))):
-                print '!!! Invalid by delta-propagation: %s' % self.prettyprint()
+                print '!!! Invalid by delta-propagation: \n%s \n %s \n %s \n -----' % (self.origin, self.transition, self.destination)
                 return False
 
 
@@ -65,12 +70,12 @@ class Transition():
                 # in the same direction for the derivatives of all variables in its influence range
         # I+ relations:
         if self.origin[i] > 0 and (np.sign(self.transition[i]) != np.sign(self.destination[dv])):
-            print '!!! Invalid by Influence propagation (I+): %s' % self.prettyprint()
+            print '!!! Invalid by Influence propagation (I+): \n%s \n %s \n %s \n -----' % (self.origin, self.transition, self.destination)
             return False
 
         # I- relations:
         if self.origin[o] >0 and (np.sign(self.transition[o]) != -np.sign(self.destination[dv])):
-            print '!!! Invalid by Influence propagation (I-): %s' % self.prettyprint()
+            print '!!! Invalid by Influence propagation (I-): \n%s \n %s \n %s \n -----' % (self.origin, self.transition, self.destination)
             return False
 
         return True

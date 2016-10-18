@@ -79,6 +79,7 @@ def create_graph(S):
     G = nx.MultiDiGraph()
     n_states = len(S)
     T = []
+
     for orig_ix in range(n_states):
         for dest_ix in range(n_states):
             # creates transition from orig to dest

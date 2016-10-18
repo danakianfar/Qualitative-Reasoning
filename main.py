@@ -68,37 +68,47 @@ P = np.array([[0, 0, 0, 0, 0],
 # Get all possible combinations of states and derivatives
 S = get_full_envisionment(varDomain=var_dom, derDomain=der_dom, numOfVars=5)
 
-
+# Get all valid states
 S = prune_states(S,I)
 
-print S
+# print S
 
+# Create graph with all possible valid transition between the states
 G, T = create_graph(S)
 
-print ' -----'
 
-s1 = Set([])
-s2 = Set([])
-s0 = Set([])
+print ' -----'
+origins = Set([])
+destinations = Set([])
+total = Set([])
 
 for t in T:
-    s0.add(str(t.origin))
-    s0.add(str(t.destination))
+    total.add(str(t.origin))
+    total.add(str(t.destination))
 
-    s1.add(str(t.origin))
-    s2.add(str(t.destination))
+    origins.add(str(t.origin))
+    destinations.add(str(t.destination))
     #print t.prettyprint()
 
-print 'Total: ' + str(len(s0))
-print 'Origin: ' + str(len(s1))
-print 'Destinations: ' + str(len(s2))
+print 'Total: ' + str(len(total))
+print 'Origin: ' + str(len(origins))
+print 'Destinations: ' + str(len(destinations))
 print 'Transitions: ' + str(len(T))
 
+print ' After transition check **** '
+for s in total:
+    print s
 print ' **** '
 
-for s in s0:
-    print s
 
+print ' Deleted states due to transition checks **** '
+
+strS = [str(x) for x in S]
+
+states = Set(strS)
+diff = states - total
+for s in diff:
+    print s
 print ' **** '
 
 #zstate = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
