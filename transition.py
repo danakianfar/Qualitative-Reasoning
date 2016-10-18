@@ -48,8 +48,9 @@ class Transition():
     def checkValidity(self):
 
         # debugging
-        if str(self.origin) == '[ 0.  1.  1.  1.  1.  0. -1. -1. -1. -1.]' and self.destination ==  '[ 0.  0.  0.  0.  0.  0. 0. 0. 0. 0.]':
-            print 'ah'
+        if str(self.origin) == '[ 0.  1.  1.  1.  1.  0. -1. -1. -1. -1.]':
+            if str(self.destination) ==  '[ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]':
+                print 'ah'
 
 
         # Local conditions
@@ -74,7 +75,7 @@ class Transition():
             return False
 
         # I- relations:
-        if self.origin[o] >0 and (np.sign(self.transition[o]) != -np.sign(self.destination[dv])):
+        if self.origin[o] >0 and (np.sign(self.transition[o]) != -np.sign(self.transition[dv])):
             print '!!! Invalid by Influence propagation (I-): \n%s \n %s \n %s \n -----' % (self.origin, self.transition, self.destination)
             return False
 

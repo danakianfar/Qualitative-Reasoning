@@ -111,8 +111,8 @@ strS = [str(x) for x in S]
 
 states = Set(strS)
 diff = states - total
-for s in diff:
-    print s
+for i in range(len(diff)):
+    print '%d: %s'% (i+1,diff.pop())
 print ' **** '
 
 #zstate = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
