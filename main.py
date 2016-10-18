@@ -6,6 +6,10 @@ from sets import Set
 
 # Variable ordering [I V H P O]
 
+var_names = [ 'Inflow', 'Volume', 'Height', 'Pressure', 'Outflow']
+dom_names = {0: 'zero', 1 : 'positive', 2 : 'maximum'}
+der_names = {0: 'steady', 1 : 'positive', -1 : 'negative', -9 : 'ambiguous'}
+
 # 0, plus, max domain for all the variables
 var_dom = [0.0, 1.0, 2.0]
 
@@ -41,55 +45,56 @@ S = prune_states(S,I)
 
 print S
 
-G, T = create_graph(S)
-
-print ' -----'
-
-s1 = Set([])
-s2 = Set([])
-s0 = Set([])
-
-for t in T:
-    s0.add(str(t.origin))
-    s0.add(str(t.destination))
-
-    s1.add(str(t.origin))
-    s2.add(str(t.destination))
-    #print t.prettyprint()
-
-print 'Total: ' + str(len(s0))
-print 'Origin: ' + str(len(s1))
-print 'Destinations: ' + str(len(s2))
-print 'Transitions: ' + str(len(T))
-
-print ' **** '
-
-for s in s0:
-    print s
-
-print ' **** '
-
-#zstate = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-zstate = np.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
-
-
-sstate=(np.array([   1 ,   0,    0,    0,    0,    1 ,   1 ,   1 ,   1 ,   1]))
-
-tr = Transition(zstate,sstate)
-print tr.checkValidity()
-
-pos = nx.fruchterman_reingold_layout(G)
-
-print G.selfloop_edges()
-
-
-for v in G.nodes():
-    G.node[v]['state']=v
-
-nx.draw(G, pos)
-node_labels = nx.get_node_attributes(G,'state')
-nx.draw_networkx_labels(G, pos, labels = node_labels)
-#plt.savefig('this.png')
-plt.show()
-
-
+# G, T = create_graph(S)
+#
+# print ' -----'
+#
+# s1 = Set([])
+# s2 = Set([])
+# s0 = Set([])
+#
+# for t in T:
+#     s0.add(str(t.origin))
+#     s0.add(str(t.destination))
+#
+#     s1.add(str(t.origin))
+#     s2.add(str(t.destination))
+#     #print t.prettyprint()
+#
+# print 'Total: ' + str(len(s0))
+# print 'Origin: ' + str(len(s1))
+# print 'Destinations: ' + str(len(s2))
+# print 'Transitions: ' + str(len(T))
+#
+# print ' **** '
+#
+# for s in s0:
+#     print s
+#
+# print ' **** '
+#
+# #zstate = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+# zstate = np.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+#
+#
+# sstate=(np.array([   1 ,   0,    0,    0,    0,    1 ,   1 ,   1 ,   1 ,   1]))
+#
+# tr = Transition(zstate,sstate)
+# print tr.checkValidity()
+#
+# pos = nx.fruchterman_reingold_layout(G)
+#
+# print G.selfloop_edges()
+#
+#
+# for v in G.nodes():
+#     G.node[v]['state']=v
+#
+# print '-+-+-+'
+# print(nx.dijkstra_path(G,0,11))
+#
+# nx.draw(G, pos)
+# node_labels = nx.get_node_attributes(G,'state')
+# nx.draw_networkx_labels(G, pos, labels = node_labels)
+# #plt.savefig('this.png')
+# plt.show()
