@@ -39,6 +39,10 @@ def get_full_envisionment(varDomain, derDomain, numOfVars):
 # Number of variables
 numOfVars = 5
 
+var_names = [ 'Inflow', 'Volume', 'Height', 'Pressure', 'Outflow']
+dom_names = {0: 'zero', 1 : 'positive', 2 : 'maximum'}
+der_names = {0: 'steady', 1 : 'positive', -1 : 'negative', -9 : 'ambiguous'}
+
 # 0, plus, max domain for all the variables
 var_dom = [[0.0, 1.0, 2.0],]*numOfVars
 
@@ -133,5 +137,4 @@ node_labels = nx.get_node_attributes(G,'state')
 nx.draw_networkx_labels(G, pos, labels = node_labels)
 #plt.savefig('this.png')
 plt.show()
-
 
