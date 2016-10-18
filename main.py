@@ -3,25 +3,52 @@ import matplotlib.pyplot as plt
 import itertools
 from state_graph import *
 from sets import Set
+import array
 
-# Variable ordering [I V H P O]
+def_max = 2
+def_zero = 0
+def_plus = 1
+def_neg = -1
+def_amb = -9
+
+def get_graph():
+
+    return None
+
+def get_full_envisionment(varDomain, derDomain, numOfVars):
+    # Variable ordering
+    vars = ['I', 'V', 'H', 'P', 'O']
+
+    # creates full envisionment by doing a cross product of possible variables and possible derivatives
+    st_var = list(itertools.product(*varDomain))
+    st_der = list(itertools.product(*derDomain))
+    states = list(itertools.product(st_var, st_der))
+
+    # Cast envisionment to Numpy array
+    S = []
+    for i in range(len(states)):
+        S.append(states[i][0] + states[i][1])
+    return np.asarray(S)
+
+
+
+## ============================
+#  Initialization
+## ============================
+
+# Number of variables
+numOfVars = 5
 
 # 0, plus, max domain for all the variables
-var_dom = [0.0, 1.0, 2.0]
+var_dom = [[0.0, 1.0, 2.0],]*numOfVars
 
 # ?, negative, 0, plus for all derivatives
-der_dom = [-9.0,-1.0,0.0,1.0]
+der_dom =    [[-1, 0, 1],
+             [-9, -1, 0, 1],
+             [-9, -1, 0, 1],
+             [-9, -1, 0, 1],
+             [-9, -1, 0, 1]]
 
-# creates full envisionment
-st_var = list(itertools.product(var_dom, repeat=5))
-st_der = list(itertools.product([-1,0,1], [-9,-1,0,1], [-9,-1,0,1], [-9,-1,0,1], [-9,-1,0,1]))
-states = list(itertools.product(st_var, st_der))
-
-# translates envisionment to np array
-S = []
-for i in range(len(states)):
-    S.append( np.asarray(states[i][0] + states[i][1]))
-S = np.asarray(S)
 
 # Matrix of influence dependencies (row influences column): +1 I+, -1 I-, 0 no relation
 I = np.array([[0, 1, 0, 0, 0],
@@ -36,6 +63,11 @@ P = np.array([[0, 0, 0, 0, 0],
               [0, 0, 0, 1, 0],
               [0, 0, 0, 0, 1],
               [0, 0, 0, 0, 0]])
+
+
+# Get all possible combinations of states and derivatives
+S = get_full_envisionment(varDomain=var_dom, derDomain=der_dom, numOfVars=5)
+
 
 S = prune_states(S,I)
 

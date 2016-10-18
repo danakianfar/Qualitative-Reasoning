@@ -26,7 +26,7 @@ def d(x):
     elif x < -5 or x > 5:
         return '?'
     else:
-        print 'what: '+str(x)
+        print 'what? '+str(x)
 
 class Transition():
 
