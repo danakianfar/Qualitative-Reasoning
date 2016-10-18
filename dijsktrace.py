@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 from state_graph import *
+from networkx.exception import NetworkXNoPath
 import networkx as nx
 from transition import Transition
 
@@ -42,30 +43,28 @@ def describe_transition(trans, var_names, dom_names, der_names):
 
 
 def print_trace(G, S, s1, s2):
-    tr_list = nx.dijkstra_path(G, s1, s2)
 
-    describe_state(S[tr_list[0]], s1, var_names, dom_names, der_names, 'Initial')
+    print '\n + Trace Description Started + '
 
-    for i in range(1, len(tr_list)):
-        istate = S[tr_list[i - 1]]
-        fstate = S[tr_list[i]]
+    try:
+        tr_list = nx.dijkstra_path(G, s1, s2)
 
-        tr = Transition(istate, fstate)
+        describe_state(S[tr_list[0]], s1, var_names, dom_names, der_names, 'Initial')
 
-        describe_transition(tr, var_names, dom_names, der_names)
+        for i in range(1, len(tr_list)):
+            istate = S[tr_list[i - 1]]
+            fstate = S[tr_list[i]]
 
-        label = ''
-        if tr_list[i] == s2:
-            label = 'Final'
+            tr = Transition(istate, fstate)
 
-        describe_state(fstate, tr_list[i], var_names, dom_names, der_names, label)
+            describe_transition(tr, var_names, dom_names, der_names)
 
-istate = np.array([0, 0, 0, 0, 0, 0, -9, 0, 0, 0])
-fstate=(np.array([0,0,0,0,0,1,0,0-1,0,0]))
+            label = ''
+            if tr_list[i] == s2:
+                label = 'Final'
 
-describe_state(istate, 1, var_names, dom_names, der_names)
+            describe_state(fstate, tr_list[i], var_names, dom_names, der_names, label)
 
-tr = Transition(istate,fstate)
-describe_transition(tr, var_names, dom_names, der_names)
+    except NetworkXNoPath as e:
 
-describe_state(fstate, 2, var_names, dom_names, der_names)
+        print 'Error: Impossible to reach state ' + str(s2) + ' from state ' + str(s1) + '.'
