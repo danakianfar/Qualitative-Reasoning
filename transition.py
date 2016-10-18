@@ -23,7 +23,7 @@ def d(x):
         return 'm'
     elif x == -1:
         return '-'
-    elif x < -50 or x > 50:
+    elif x < -5 or x > 5:
         return '?'
     else:
         print 'what: '+str(x)
