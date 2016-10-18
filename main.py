@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import itertools
 from state_graph import *
 from sets import Set
+from dijsktrace import *
+
 import array
 
 def_max = 2
@@ -129,6 +131,10 @@ pos = nx.fruchterman_reingold_layout(G)
 print G.selfloop_edges()
 
 
+
+print_trace(G, S, 0, 2)
+
+
 for v in G.nodes():
     G.node[v]['state']=v
 
@@ -137,4 +143,5 @@ node_labels = nx.get_node_attributes(G,'state')
 nx.draw_networkx_labels(G, pos, labels = node_labels)
 #plt.savefig('this.png')
 plt.show()
+
 
