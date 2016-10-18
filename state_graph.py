@@ -36,27 +36,26 @@ def prune_states(S,I):
         print str(ix) + ' -- ' + str(S[ix,[0,1,5,6]])
 
     del_states1 = Set([])
-    del_states2 = Set([])
     del_states3 = Set([])
 
     for s_ix in range(len(S)):
         s = S[s_ix]
+
         # checks for influence relationships
         for j in range(nvars):
+            if sum(abs(I[:, j])) == 0:
+                continue
+
             influences = Set([])
 
             for i in range(nvars):
                 if I[i][j] != 0 and s[i] != 0:
                     influences.add(I[i][j])
 
-            #if len(influences) == 0 and s[j+nvars] != 0:
-            #    del_states1.add(s_ix)
-            #    continue
-
-            #mixed signs
-            if len(influences) == 2 and not(s[j+nvars] < -1):
-                del_states2.add(s_ix)
+            if len(influences) == 0 and sum(abs(s[0:nvars])) == 0 and s[j+nvars] != 0 :
+                del_states1.add(s_ix)
                 continue
+
 
             #same sign
             if len(influences) == 1 and influences.pop() != s[j + nvars]:
@@ -66,19 +65,32 @@ def prune_states(S,I):
     print '***********'
 
     print list(del_states1)
-    print list(del_states2)
     print list(del_states3)
     print '+++++++++++'
 
-    del_states = del_states1 | del_states2 | del_states3
+    orig_states = Set(range(len(S)))
+
+    del_states = del_states1 | del_states3
+
+    print '||||||||||||||'
+
+    rem_states = list(orig_states - del_states)
     print S[list(del_states)]
+
+
     print '***********'
+
+    for ix in rem_states:
+        #if -9 in list(S[ix,[0,1,5,6]]):
+        #    continue
+        print str(ix) + ' -- ' + str(S[ix,[0,1,5,6]])
 
     # deletes the invalid states
     S = np.delete(S,list(del_states), axis=0)
     print 'Number of states prunned: ' + str(init_states-len(S))
     print 'Final number of states: ' + str(len(S))
-    return S
+
+
 
 def create_graph(S):
     # creates a directed graph
