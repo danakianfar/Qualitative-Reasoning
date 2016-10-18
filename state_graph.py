@@ -80,13 +80,33 @@ def create_graph(S):
     n_states = len(S)
     T = []
 
+    epsilon = set([])
+    epsilonFake = set([])
+    delta= set([])
+    ipos = set([])
+    ineg = set([])
+
     for orig_ix in range(n_states):
         for dest_ix in range(n_states):
             # creates transition from orig to dest
             tr = Transition(S[orig_ix],S[dest_ix])
 
             #if transition is valid, then add it to the graph
-            if tr.checkValidity():
+            validity, num = tr.checkValidity()
+            if validity:
                 T.append(tr)
+                # print len(T)
                 G.add_edge(orig_ix,dest_ix)
-    return G, T
+            else:
+                if num == 1:
+                    epsilonFake.add(tr)
+                elif num == 2:
+                    delta.add(tr)
+                elif num == 3:
+                    ipos.add(tr)
+                elif num == 4:
+                    ineg.add(tr)
+                elif num == 5:
+                    epsilon.add(tr)
+
+    return G, T, (epsilonFake,delta, ipos, ineg, epsilon)

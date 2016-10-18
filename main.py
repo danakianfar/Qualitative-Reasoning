@@ -80,7 +80,7 @@ S = prune_states(S,I)
 # print S
 
 # Create graph with all possible valid transition between the states
-G, T = create_graph(S)
+G, T, (epsilonFake,delta, ipos, ineg, epsilon) = create_graph(S)
 
 
 print ' -----'
@@ -102,8 +102,10 @@ print 'Destinations: ' + str(len(destinations))
 print 'Transitions: ' + str(len(T))
 
 print ' After transition check **** '
-for s in total:
-    print s
+i = 0
+for s in S:
+    print '%d %s' % (i,s)
+    i += 1
 print ' **** '
 
 
@@ -114,17 +116,18 @@ strS = [str(x) for x in S]
 states = Set(strS)
 diff = states - total
 for i in range(len(diff)):
-    print '%d: %s'% (i+1,diff.pop())
+    d = diff.pop()
+    print '%d: %s'% (i+1, d)
 print ' **** '
-
-#zstate = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-zstate = np.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
-
-
-sstate=(np.array([   1 ,   0,    0,    0,    0,    1 ,   1 ,   1 ,   1 ,   1]))
-
-tr = Transition(zstate,sstate)
-print tr.checkValidity()
+#
+# #zstate = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+# zstate = np.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+#
+#
+# sstate=(np.array([   1 ,   0,    0,    0,    0,    1 ,   1 ,   1 ,   1 ,   1]))
+#
+# tr = Transition(zstate,sstate)
+# print tr.checkValidity()
 
 pos = nx.fruchterman_reingold_layout(G)
 
