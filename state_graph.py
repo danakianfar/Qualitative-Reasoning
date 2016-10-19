@@ -308,7 +308,7 @@ def create_graph(S, I, P, dom_der):
     ineg = set([])
 
     for orig_ix in range(n_states):
-        for dest_ix in range(n_states):
+        for dest_ix in range(orig_ix , n_states):
             # creates transition from orig to dest
             tr = Transition(S[orig_ix],S[dest_ix])
 

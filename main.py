@@ -55,81 +55,81 @@ P = np.array([[0, 0, 0, 0, 0],
               [0, 0, 0, 0, 0]])
 
 
-# # Get all possible combinations of states and derivatives
-# S = get_full_envisionment(varDomain=var_dom, derDomain=der_dom, numOfVars=5)
-#
-# # Get all valid states
-# S = prune_states(S,I)
-#
-# # print S
-#
-# # Create graph with all possible valid transition between the states
-# G, T, (epsilonFake,delta, ipos, ineg, epsilon) = create_graph(S, I, P, der_dom)
-#
-#
-# print ' -----'
-# origins = Set([])
-# destinations = Set([])
-# transitions = Set([])
-# total = Set([])
-#
-# for t in T:
-#     total.add(str(t.origin))
-#     total.add(str(t.destination))
-#     transitions.add(str(t.origin)+str(t.transition)+str(t.destination))
-#
-#     origins.add(str(t.origin))
-#     destinations.add(str(t.destination))
-#     #print t.prettyprint()
-#
-# print 'Total: ' + str(len(total))
-# print 'Origin: ' + str(len(origins))
-# print 'Destinations: ' + str(len(destinations))
-# print 'Transitions: ' + str(len(transitions))
-#
-# print ' After transition check **** '
-# i = 0
-# for s in S:
-#     print '%d %s' % (i,s)
-#     i += 1
+# Get all possible combinations of states and derivatives
+S = get_full_envisionment(varDomain=var_dom, derDomain=der_dom, numOfVars=5)
+
+# Get all valid states
+S = prune_states(S,I)
+
+# print S
+
+# Create graph with all possible valid transition between the states
+G, T, (epsilonFake,delta, ipos, ineg, epsilon) = create_graph(S, I, P, der_dom)
+
+
+print ' -----'
+origins = Set([])
+destinations = Set([])
+transitions = Set([])
+total = Set([])
+
+for t in T:
+    total.add(str(t.origin))
+    total.add(str(t.destination))
+    transitions.add(str(t.origin)+str(t.transition)+str(t.destination))
+
+    origins.add(str(t.origin))
+    destinations.add(str(t.destination))
+    #print t.prettyprint()
+
+print 'Total: ' + str(len(total))
+print 'Origin: ' + str(len(origins))
+print 'Destinations: ' + str(len(destinations))
+print 'Transitions: ' + str(len(transitions))
+
+print ' After transition check **** '
+i = 0
+for s in S:
+    print '%d %s' % (i,s)
+    i += 1
+print ' **** '
+
+
+print ' Deleted states due to transition checks **** '
+
+strS = [str(x) for x in S]
+
+states = Set(strS)
+diff = states - total
+for i in range(len(diff)):
+    d = diff.pop()
+    print '%d: %s'% (i+1, d)
 # print ' **** '
-#
-#
-# print ' Deleted states due to transition checks **** '
-#
-# strS = [str(x) for x in S]
-#
-# states = Set(strS)
-# diff = states - total
-# for i in range(len(diff)):
-#     d = diff.pop()
-#     print '%d: %s'% (i+1, d)
-# # print ' **** '
-#
-# pos = nx.circular_layout(G)
-#
-# print G.selfloop_edges()
-#
-#
-#
-# print_trace(G, S, 0, 2)
-#
-#
-# for v in G.nodes():
-#     G.node[v]['state']=v
-#
-# nx.draw(G, pos)
-# node_labels = nx.get_node_attributes(G,'state')
-# nx.draw_networkx_labels(G, pos, labels = node_labels)
-# #plt.savefig('this.png')
-# plt.show()
+
+pos = nx.circular_layout(G)
+
+print G.selfloop_edges()
+
+
+
+print_trace(G, S, 0, 2)
+
+
+for v in G.nodes():
+    G.node[v]['state']=v
+
+nx.draw(G, pos)
+node_labels = nx.get_node_attributes(G,'state')
+nx.draw_networkx_labels(G, pos, labels = node_labels)
+#plt.savefig('this.png')
+plt.show()
 
 # Test case
+# #
+# zstate = np.array([1, 2, 2, 2, 2, -1, -1, -1 ,-1 ,-1])
+# sstate=(np.array([1,1,1,1,1, -1,0,0,0,0]))
 #
-zstate = np.array([1, 2, 2, 2, 2, -1, -1, -1 ,-1 ,-1])
-sstate=(np.array([1,1,1,1,1, -1,0,0,0,0]))
-
-tr = Transition(zstate,sstate)
-print checkTransitionValidity(tr, I, P, der_dom)
-
+# tr = Transition(zstate,sstate)
+# print checkTransitionValidity(tr, I, P, der_dom)
+#
 
