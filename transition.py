@@ -37,7 +37,7 @@ class Transition():
         self.destination = destination
         self.numVars = self.transition.shape[0] / 2
 
-    def applyEpsilonOrdering(self):
+    def prop_der(self):
         copy = np.array(self.origin.copy(),'float64')
 
         copy[np.where(copy < -5)] = 0
@@ -62,26 +62,51 @@ class Transition():
         for x in possible_updates:
             temp_state = copy.copy()
             temp_state[val_idx] += x * copy[delta_idx]
+
+            # not increase at max
+            max_idx = np.where(temp_state[val_idx] == 2)
+            for idx in max_idx:
+                if temp_state[idx + self.numVars] == 1:
+                    temp_state[idx + self.numVars] = 0
+
+            # not decrease at min
+            min_idx = np.where(temp_state[val_idx] == 0)
+            for idx in min_idx:
+                if temp_state[idx + self.numVars] == -1:
+                    temp_state[idx + self.numVars] = 0
+
             possible_new_states.append(temp_state.tolist())
 
-        print possible_new_states
-
-        # # apply influence propagation
-        # if copy[i]>0 or copy[o]>0:
-        #     if copy[o] == 0:
-        #         if copy[dv] > -5:
-        #             copy[dv] = min(copy[dv]+1, 1)
-        #         else:
-        #             copy[dv] = 1
-        #     elif copy[o] > 0 and copy[i]>0:
-        #         copy[dv] = -9
-        #     elif copy[i] == 0:
-        #         copy[dv] = max(copy[dv]-1, -1)
-        #
-        # # apply proportionality propagation
-        # copy[do]=copy[dh]=copy[dp]=copy[dv]
-
         return possible_new_states
+
+
+    def prop_inf(self, state, I, dom_der):
+
+        st_list = []
+
+        for i in range(self.numVars):
+            if sum(abs(I[:,i])) > 0:
+                for j in dom_der:
+                    copy = state.copy()
+                    copy[i+self.numVars] = j
+                    st_list.append(copy)
+
+        return st_list
+
+
+    def prop_prop(self, state, P):
+
+        st_list = []
+
+        for i in range(self.numVars):
+            for j in range(self.numVars):
+                if P[i,j] != 0:
+                    state[j + self.numVars] = P[i,j] * state[i + self.numVars]
+                    if abs(state[j + self.numVars]) > 5:
+                        state[j + self.numVars] = -9
+                    st_list.append(state)
+
+        return st_list
 
 
     def prettyprint(self):
@@ -94,50 +119,56 @@ class Transition():
 
     def checkValidity(self):
 
-        # debugging
-        if str(self.origin) == '[ 0.  1.  1.  1.  1.  0. -1. -1. -1. -1.]':
-            if str(self.destination) == '[ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]':
-                print 'ah'
 
+        s1 = self.prop_der()
 
-        # Local conditions
-        # 0. Epsilon ordering: going from a value to an interval should happen immediately
+        s2 = []
 
-        epsForced = self.applyEpsilonOrdering()
+        for s in s1:
+            s2 += self.prop_inf(s,I,dom_der)
 
-        if self.destination.tolist() in epsForced:
+        s3 = []
+
+        for s in s2:
+            s3 += self.prop_prop(s, P)
+
+        S_prime = np.asarray(s3)
+
+        S_pruned = prune_states(S_prime, I).tolist()
+
+        if self.destination.tolist() in S_pruned or self.origin.tolist() in S_pruned:
             return True, 0
 
-        if not self.destination.tolist() in epsForced and not self.origin.tolist() in epsForced:
+        if not self.destination.tolist() in S_pruned and not self.origin.tolist() in S_pruned:
             print '!!! Invalid by epsilon rule: forced to apply derivative on point->interval: \n O: %s \n T: %s \n D: %s \n -----' % (self.origin, self.transition, self.destination)
             return False, 5
 
         # if origin is a possible forced state to origin
 
 
-        ## 1. Delta order rule: only 1 delta in quantity of derivative at a time
-        if 2 in np.abs(self.transition):
-            print '!!! Invalid by Delta rule: delta_t >= 2. t=%s' % (self.transition)
-            return False, 1
-
-        ## 2. A change in value can only be committed after a change in its derivative
-        if not(sum(self.transition[delta_idx]) > 0 and sum(self.transition[val_idx]) == 0):
-            if np.logical_not(np.array_equal(np.sign(self.origin[delta_idx]), np.sign(self.transition[val_idx]))):
-                print '!!! Invalid by delta-propagation: \n O: %s \n T: %s \n D: %s \n -----' % (self.origin, self.transition, self.destination)
-                return False, 2
-
-
-        # Global conditions
-        ## 3. Influence propagation: a change in a value in variable V1 should immediately propagate a change
-                # in the same direction for the derivatives of all variables in its influence range
-        # I+ relations:
-        if self.origin[i] > 0 and (np.sign(self.transition[i]) != np.sign(self.destination[dv])):
-            print '!!! Invalid by Influence propagation (I+): \n O: %s \n T: %s \n D: %s \n -----' % (self.origin, self.transition, self.destination)
-            return False, 3
-
-        # I- relations:
-        if self.origin[o] >0 and (np.sign(self.transition[o]) != -np.sign(self.transition[dv])):
-            print '!!! Invalid by Influence propagation (I-): \n O: %s \n T: %s \n D: %s \n -----' % (self.origin, self.transition, self.destination)
-            return False, 4
-
-        return True, 0
+        # ## 1. Delta order rule: only 1 delta in quantity of derivative at a time
+        # if 2 in np.abs(self.transition):
+        #     print '!!! Invalid by Delta rule: delta_t >= 2. t=%s' % (self.transition)
+        #     return False, 1
+        #
+        # ## 2. A change in value can only be committed after a change in its derivative
+        # if not(sum(self.transition[delta_idx]) > 0 and sum(self.transition[val_idx]) == 0):
+        #     if np.logical_not(np.array_equal(np.sign(self.origin[delta_idx]), np.sign(self.transition[val_idx]))):
+        #         print '!!! Invalid by delta-propagation: \n O: %s \n T: %s \n D: %s \n -----' % (self.origin, self.transition, self.destination)
+        #         return False, 2
+        #
+        #
+        # # Global conditions
+        # ## 3. Influence propagation: a change in a value in variable V1 should immediately propagate a change
+        #         # in the same direction for the derivatives of all variables in its influence range
+        # # I+ relations:
+        # if self.origin[i] > 0 and (np.sign(self.transition[i]) != np.sign(self.destination[dv])):
+        #     print '!!! Invalid by Influence propagation (I+): \n O: %s \n T: %s \n D: %s \n -----' % (self.origin, self.transition, self.destination)
+        #     return False, 3
+        #
+        # # I- relations:
+        # if self.origin[o] >0 and (np.sign(self.transition[o]) != -np.sign(self.transition[dv])):
+        #     print '!!! Invalid by Influence propagation (I-): \n O: %s \n T: %s \n D: %s \n -----' % (self.origin, self.transition, self.destination)
+        #     return False, 4
+        #
+        # return True, 0
