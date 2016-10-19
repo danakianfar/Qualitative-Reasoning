@@ -44,6 +44,19 @@ class Transition():
         copy[val_idx] += update
 
         # apply influence propagation
+        if copy[i]>0 or copy[o]>0:
+            if copy[o] == 0:
+                if copy[dv] > -5:
+                    copy[dv] = min(copy[dv]+1, 1)
+                else:
+                    copy[dv] = 1
+            elif copy[o] > 0 and copy[i]>0:
+                copy[dv] = -9
+            elif copy[i] == 0:
+                copy[dv] = max(copy[dv]-1, -1)
+
+        # apply proportionality propagation
+        copy[do]=copy[dh]=copy[dp]=copy[dv]
 
         return copy
 
@@ -60,7 +73,7 @@ class Transition():
 
         # debugging
         if str(self.origin) == '[ 0.  1.  1.  1.  1.  0. -1. -1. -1. -1.]':
-            if str(self.destination) ==  '[ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]':
+            if str(self.destination) == '[ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]':
                 print 'ah'
 
 
