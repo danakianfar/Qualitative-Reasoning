@@ -1,4 +1,5 @@
 import numpy as np
+from itertools import chain, combinations
 
 val_idx = range(5)
 delta_idx = range(5, 10)
@@ -39,9 +40,25 @@ class Transition():
     def applyEpsilonOrdering(self):
         copy =  self.origin.copy()
         copy[np.where(copy < -5)] = 0
-        evens = 1 - copy[val_idx] % 2
-        update = evens * copy[delta_idx]
-        copy[val_idx] += update
+
+        # split on interval->point, point->interval
+        intervals = copy[val_idx] % 2
+        points = 1 - intervals
+
+        update_points = points * copy[delta_idx]
+
+        # split intervals to basis vectors
+        eye = np.eye(self.numVars)
+        bases = eye[np.where(intervals>0)]
+        possible_update_intervals = []
+
+        for combo in chain.from_iterable(combinations(bases, r) for r in range(len(bases) + 1)):
+            update = np.zeros(self.numVars)
+            for x in list(combo):
+                update += x
+            possible_update_intervals.append(update)
+
+        copy[val_idx] +=
 
         # apply influence propagation
         if copy[i]>0 or copy[o]>0:
