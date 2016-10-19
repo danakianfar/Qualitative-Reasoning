@@ -1,21 +1,5 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import itertools
-from state_graph import *
-from sets import Set
 from dijsktrace import *
 
-import array
-
-def_max = 2
-def_zero = 0
-def_plus = 1
-def_neg = -1
-def_amb = -9
-
-def get_graph():
-
-    return None
 
 def get_full_envisionment(varDomain, derDomain, numOfVars):
     # Variable ordering
@@ -80,17 +64,19 @@ P = np.array([[0, 0, 0, 0, 0],
 # # print S
 #
 # # Create graph with all possible valid transition between the states
-# G, T, (epsilonFake,delta, ipos, ineg, epsilon) = create_graph(S)
+# G, T, (epsilonFake,delta, ipos, ineg, epsilon) = create_graph(S, I, P, der_dom)
 #
 #
 # print ' -----'
 # origins = Set([])
 # destinations = Set([])
+# transitions = Set([])
 # total = Set([])
 #
 # for t in T:
 #     total.add(str(t.origin))
 #     total.add(str(t.destination))
+#     transitions.add(str(t.origin)+str(t.transition)+str(t.destination))
 #
 #     origins.add(str(t.origin))
 #     destinations.add(str(t.destination))
@@ -99,7 +85,7 @@ P = np.array([[0, 0, 0, 0, 0],
 # print 'Total: ' + str(len(total))
 # print 'Origin: ' + str(len(origins))
 # print 'Destinations: ' + str(len(destinations))
-# print 'Transitions: ' + str(len(T))
+# print 'Transitions: ' + str(len(transitions))
 #
 # print ' After transition check **** '
 # i = 0
@@ -118,16 +104,9 @@ P = np.array([[0, 0, 0, 0, 0],
 # for i in range(len(diff)):
 #     d = diff.pop()
 #     print '%d: %s'% (i+1, d)
-# print ' **** '
-
-
-zstate = np.array([1, 0, 0, 0, 0, 1, 1, 0, 0, 0])
-sstate=(np.array([1 ,   0,    0,    0,    0,    1 ,   1 ,   1 ,   1 ,   1]))
-
-tr = Transition(zstate,sstate)
-print tr.checkValidity()
-
-# pos = nx.fruchterman_reingold_layout(G)
+# # print ' **** '
+#
+# pos = nx.circular_layout(G)
 #
 # print G.selfloop_edges()
 #
@@ -144,3 +123,13 @@ print tr.checkValidity()
 # nx.draw_networkx_labels(G, pos, labels = node_labels)
 # #plt.savefig('this.png')
 # plt.show()
+
+# Test case
+#
+zstate = np.array([1, 2, 2, 2, 2, -1, -1, -1 ,-1 ,-1])
+sstate=(np.array([1,1,1,1,1, -1,0,0,0,0]))
+
+tr = Transition(zstate,sstate)
+print checkTransitionValidity(tr, I, P, der_dom)
+
+

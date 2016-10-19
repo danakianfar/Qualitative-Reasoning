@@ -5,7 +5,7 @@ import itertools
 from state_graph import *
 from networkx.exception import NetworkXNoPath
 import networkx as nx
-from transition import Transition
+from state_graph import Transition
 
 var_names = [ 'I', 'V', 'H', 'P', 'O']
 dom_names = {0: '0', 1 : '+', 2 : 'M'}
