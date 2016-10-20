@@ -33,12 +33,17 @@ der_names = {0: 'steady', 1 : 'positive', -1 : 'negative', -9 : 'ambiguous'}
 var_dom = [[0.0, 1.0, 2.0],]*numOfVars
 
 # ?, negative, 0, plus for all derivatives
-der_dom =    [[-1, 0, 1],
-             [-9, -1, 0, 1],
-             [-9, -1, 0, 1],
-             [-9, -1, 0, 1],
-             [-9, -1, 0, 1]]
+# der_dom =    [[-1, 0, 1],
+#              [-9, -1, 0, 1],
+#              [-9, -1, 0, 1],
+#              [-9, -1, 0, 1],
+#              [-9, -1, 0, 1]]
 
+der_dom =    [[-1, 0, 1],
+             [ -1, 0, 1],
+             [ -1, 0, 1],
+             [ -1, 0, 1],
+             [ -1, 0, 1]]
 
 # Matrix of influence dependencies (row influences column): +1 I+, -1 I-, 0 no relation
 I = np.array([[0, 1, 0, 0, 0],
@@ -151,21 +156,19 @@ for i in range(len(diff)):
 
 pos = nx.circular_layout(G)
 
-print G.selfloop_edges()
-
-
-
 print_trace(G, S, 0, 2)
-
 
 for v in G.nodes():
     G.node[v]['state']=v
+
+
+print G.selfloop_edges()
 
 nx.draw(G, pos)
 node_labels = nx.get_node_attributes(G,'state')
 nx.draw_networkx_labels(G, pos, labels = node_labels)
 #plt.savefig('this.png')
-# plt.show()
+plt.show()
 
 # Test case
 # #

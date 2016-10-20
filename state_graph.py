@@ -28,6 +28,9 @@ def_amb = -9
 def compactRepresentation(vector):
     return [vector[z] for z in [i,v,di,dv]]
 
+def compactTransition(transition):
+
+    return str(compactRepresentation(transition.origin))+'   -->    '+ str(compactRepresentation(transition.transition))+'   -->    '+ str(compactRepresentation(transition.destination))
 
 def d(x):
     if x == 0:
@@ -99,7 +102,7 @@ def prop_der(transition):
 
         possible_new_states.append(temp_state.tolist())
 
-    return possible_new_states
+    return np.array(possible_new_states,'float64')
 
 
 def prop_inf(transition, state, I, dom_der):
@@ -131,18 +134,41 @@ def prop_prop(transition, state, P):
 
     return st_list
 
+def exogenous_change(S, transition, dom_der):
+    S_exog = []
 
-def checkTransitionValidity(transition, I, P, dom_der):
+    for state in S:
+        for der in dom_der[0]:
+            copy = state.copy()
+            copy[transition.numVars] = der
+            S_exog.append(copy.tolist())
+    return S_exog
 
 
-    s1 = prop_der(transition)
 
+def checkTransitionValidity(transition, I, P, dom_der, orig_ix, dest_ix):
+
+    if 2 in abs(transition.transition):
+        print 'Rejected by epsilon continuity: %d ---> %d' % (orig_ix, dest_ix)
+        return False
+
+    s1 = np.asarray(prop_der(transition))
+
+    s1 = prune_states(s1, I).tolist()
+
+    if len(s1) == 0:
+        return False
+
+    if transition.destination.tolist() in s1:
+        # delta prop necessary and destination is a forced move
+        print 'Result of Delta-Prop: %s %d ---> %d' % (True, orig_ix, dest_ix)
+        if orig_ix == 11:
+            print 'hi'
+        return True
 
     s2 = []
-
     for s in s1:
         s2 += prop_inf(transition, s,I,dom_der)
-
 
     S_prime = np.asarray(s2)
     s2 = partial_pruning(S_prime, I).tolist()
@@ -153,20 +179,24 @@ def checkTransitionValidity(transition, I, P, dom_der):
     for s in s2:
         s3 += prop_prop(transition, s, P)
 
-
     S_prime = np.asarray(s3)
 
-    S_pruned = prune_states(S_prime, I).tolist()
+    S_exog = np.asarray(exogenous_change(S_prime, transition, dom_der))
 
+    S_pruned = prune_states(S_exog, I).tolist()
 
-    if transition.destination.tolist() in S_pruned: # or transition.origin.tolist() in S_pruned:
-        return True
+    result = transition.destination.tolist() in S_pruned
+    print 'Result of Inf-Prop prop: %s %d ---> %d' % (result, orig_ix, dest_ix)
 
-    if not transition.destination.tolist() in S_pruned and not transition.origin.tolist() in S_pruned:
-        # print '!!! Invalid by epsilon rule: forced to apply derivative on point->interval: \n O: %s \n T: %s \n D: %s \n -----' % (transition.origin, transition.transition, transition.destination)
-        return False
+    if orig_ix == 11:
+        print 'hi'
 
-    return False
+    return result
+
+#    if not transition.destination.tolist() in S_pruned and not transition.origin.tolist() in S_pruned:
+#        # print '!!! Invalid by epsilon rule: forced to apply derivative on point->interval: \n O: %s \n T: %s \n D: %s \n -----' % (transition.origin, transition.transition, transition.destination)
+#        return False
+
 
 def partial_pruning(S,I):
     # number of variables
@@ -280,14 +310,14 @@ def prune_states(S,I):
                     influences.add(I[i][j])
 
             # if no influences on the variable and no variables have values, derivative has to be zero
-            if len(influences) == 0 and sum(abs(s[0:nvars])) == 0 and s[j+nvars] != 0 :
+            if len(influences) == 0  and s[j+nvars] != 0 :
                 del_states1.add(s_ix)
-                continue
+                break
 
             # all influences have same sign, derivative has to be in that direction
             if len(influences) == 1 and influences.pop() != s[j + nvars]:
                 del_states2.add(s_ix)
-                continue
+                break
 
     del_states = del_states1 | del_states2
 
@@ -306,12 +336,12 @@ def create_graph(S, I, P, dom_der):
     T = []
 
     for orig_ix in range(n_states):
-        for dest_ix in range(orig_ix , n_states):
+        for dest_ix in range(n_states):
             # creates transition from orig to dest
             tr = Transition(S[orig_ix],S[dest_ix])
 
             #if transition is valid, then add it to the graph
-            if checkTransitionValidity(tr ,I, P, dom_der):
+            if checkTransitionValidity(tr ,I, P, dom_der, orig_ix, dest_ix):
                 T.append(tr)
                 # print len(T)
                 G.add_edge(orig_ix,dest_ix)
