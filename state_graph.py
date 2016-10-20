@@ -25,6 +25,10 @@ def_plus = 1
 def_neg = -1
 def_amb = -9
 
+def compactRepresentation(vector):
+    return [vector[z] for z in [i,v,di,dv]]
+
+
 def d(x):
     if x == 0:
         return '0'
@@ -156,13 +160,13 @@ def checkTransitionValidity(transition, I, P, dom_der):
 
 
     if transition.destination.tolist() in S_pruned: # or transition.origin.tolist() in S_pruned:
-        return True, 0
+        return True
 
     if not transition.destination.tolist() in S_pruned and not transition.origin.tolist() in S_pruned:
-        print '!!! Invalid by epsilon rule: forced to apply derivative on point->interval: \n O: %s \n T: %s \n D: %s \n -----' % (transition.origin, transition.transition, transition.destination)
-        return False, 5
+        # print '!!! Invalid by epsilon rule: forced to apply derivative on point->interval: \n O: %s \n T: %s \n D: %s \n -----' % (transition.origin, transition.transition, transition.destination)
+        return False
 
-    return False, 1
+    return False
 
 def partial_pruning(S,I):
     # number of variables
@@ -301,33 +305,15 @@ def create_graph(S, I, P, dom_der):
     n_states = len(S)
     T = []
 
-    epsilon = set([])
-    epsilonFake = set([])
-    delta= set([])
-    ipos = set([])
-    ineg = set([])
-
     for orig_ix in range(n_states):
         for dest_ix in range(orig_ix , n_states):
             # creates transition from orig to dest
             tr = Transition(S[orig_ix],S[dest_ix])
 
             #if transition is valid, then add it to the graph
-            validity, num = checkTransitionValidity(tr ,I, P, dom_der)
-            if validity:
+            if checkTransitionValidity(tr ,I, P, dom_der):
                 T.append(tr)
                 # print len(T)
                 G.add_edge(orig_ix,dest_ix)
-            else:
-                if num == 1:
-                    epsilonFake.add(tr)
-                elif num == 2:
-                    delta.add(tr)
-                elif num == 3:
-                    ipos.add(tr)
-                elif num == 4:
-                    ineg.add(tr)
-                elif num == 5:
-                    epsilon.add(tr)
 
-    return G, T, (epsilonFake,delta, ipos, ineg, epsilon)
+    return G, T

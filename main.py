@@ -64,8 +64,52 @@ S = prune_states(S,I)
 # print S
 
 # Create graph with all possible valid transition between the states
-G, T, (epsilonFake,delta, ipos, ineg, epsilon) = create_graph(S, I, P, der_dom)
+G, T = create_graph(S, I, P, der_dom)
 
+
+# Mapping of origin->destination and vice versa
+mapping = {}
+for trans in T:
+
+    # Store origin
+    if str(trans.origin) not in mapping:
+        mapping[str(trans.origin)] = {'origin': [], 'destination':[]}
+    mapping[str(trans.origin)]['origin'].append(trans)
+
+    # Store destinations
+    if str(trans.destination) not in mapping:
+        mapping[str(trans.destination)] = {'origin': [], 'destination':[]}
+    mapping[str(trans.destination)]['destination'].append(trans)
+
+
+print '\n\n Mapping of all states and destinations'
+
+
+S_map = {}
+
+for i,s in enumerate(S):
+    key = str(list(s)).replace('.0','.').replace(',','').replace(' ','  ').replace('[','[ ').replace('  -',' -')
+    S_map[key] = i
+
+
+for key in S_map.keys():
+    print 'State %d %s' % (S_map[key], key)
+    try:
+        print 'As origin'
+        if mapping[key]['origin']:
+            for i in mapping[key]['origin']:
+                print '\ttr: %s' % str(compactRepresentation(i.transition))+'    -->      des: %d' % S_map[str(i.destination)]
+            print '\n'
+
+        print 'As destination'
+        if mapping[key]['destination']:
+            for i in mapping[key]['destination']:
+                print '\ttr: %s' % str(compactRepresentation(i.transition)) + '    <--      orig: %d' % S_map[str(i.origin)]
+
+    except KeyError as e:
+        print 'State not found in transition graph!!'
+
+    print '\n-------------------------------\n'
 
 print ' -----'
 origins = Set([])
@@ -122,7 +166,7 @@ nx.draw(G, pos)
 node_labels = nx.get_node_attributes(G,'state')
 nx.draw_networkx_labels(G, pos, labels = node_labels)
 #plt.savefig('this.png')
-plt.show()
+# plt.show()
 
 # Test case
 # #
