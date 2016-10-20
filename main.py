@@ -84,6 +84,10 @@ for trans in T:
 
 print '\n\n Mapping of all states and destinations'
 
+for i,s in enumerate(S):
+    print '%d %s' % (i,s)
+    i += 1
+print ' **** '
 
 S_map = {}
 
@@ -132,11 +136,6 @@ print 'Destinations: ' + str(len(destinations))
 print 'Transitions: ' + str(len(transitions))
 
 print ' After transition check **** '
-i = 0
-for s in S:
-    print '%d %s' % (i,s)
-    i += 1
-print ' **** '
 
 
 print ' Deleted states due to transition checks **** '
