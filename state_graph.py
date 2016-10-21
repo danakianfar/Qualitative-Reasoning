@@ -151,19 +151,16 @@ def exogenous_change(S, transition, dom_der):
 def checkTransitionValidity(transition, I, P, dom_der, orig_ix, dest_ix):
 
     if 2 in abs(transition.transition):
-        print 'Rejected by epsilon continuity: %d ---> %d' % (orig_ix, dest_ix)
+        print 'Result of epsilon continuity: %s %d ---> %d' % (False, orig_ix, dest_ix)
         return False
 
     s1 = prop_der(transition)
 
     s1 = partial_pruning(s1, I).tolist()
 
-    if len(s1) == 0:
-        return False
-
     if transition.destination.tolist() in s1:
         # delta prop necessary and destination is a forced move
-        print 'Result of Delta-Prop: %s %d ---> %d' % (True, orig_ix, dest_ix)
+        print 'Result of derivative propagation: %s %d ---> %d' % (True, orig_ix, dest_ix)
         return True
 
     s2 = []
@@ -178,30 +175,18 @@ def checkTransitionValidity(transition, I, P, dom_der, orig_ix, dest_ix):
         s3 += prop_prop(transition, s, P)
     s3 = [list(x) for x in set(tuple(x) for x in s3)]
 
-
     S_prime = np.asarray(s3)
     S_pruned = prune_states(S_prime, I)
 
-    print 'Spruned='
-    print S_pruned.tolist()
-
-    print transition.destination.tolist()
-
     if transition.destination.tolist() in S_pruned.tolist():
-        print 'Result of Inf-Prop prop: %s %d ---> %d' % (True, orig_ix, dest_ix)
+        print 'Result of I and P propagation: %s %d ---> %d' % (True, orig_ix, dest_ix)
         return True
     else:
-        # for state in S_pruned:
-        #     print state
-        #     tr_prime = Transition(state, transition.destination)
-        #     result = is_exogenous(tr_prime)
-        #     if result:
-        #         print 'One of S3 ' + str(result)
-        #         return True
-
         result = is_exogenous(transition)
-        print 'Orig One Result of Inf-Prop prop: %s %d ---> %d' % (str(result), orig_ix, dest_ix)
-
+        if result:
+            print 'Result of exogenous influence: %s %d ---> %d' % (str(result), orig_ix, dest_ix)
+        else:
+            print 'Invalid transition: %s %d ---> %d' % (str(result), orig_ix, dest_ix)
         return result
 
 
@@ -243,41 +228,6 @@ def partial_pruning(S, I):
                     break
 
     S = np.delete(S, list(del_states), axis=0)
-
-    # del_states1 = Set([])
-    # del_states2 = Set([])
-    #
-    # for s_ix in range(len(S)):
-    #     s = S[s_ix]
-    #
-    #     # checks for influence relationships
-    #     for j in range(nvars):
-    #
-    #         # if nothing influences the variable, it can change freely
-    #         if sum(abs(I[:, j])) == 0:
-    #             continue
-    #
-    #         influences = Set([])
-    #
-    #         for i in range(nvars):
-    #             # checks it there is an influence and the variable has value diff to zero
-    #             if I[i][j] != 0 and s[i] != 0:
-    #                 influences.add(I[i][j])
-    #
-    #         # if no influences on the variable and no variables have values, derivative has to be zero
-    #         if len(influences) == 0 and sum(abs(s[0:nvars])) == 0 and s[j+nvars] != 0 :
-    #             del_states1.add(s_ix)
-    #             continue
-    #
-    #         # all influences have same sign, derivative has to be in that direction
-    #         if len(influences) == 1 and influences.pop() != s[j + nvars]:
-    #             del_states2.add(s_ix)
-    #             continue
-    #
-    # del_states = del_states1 | del_states2
-    #
-    # # deletes the invalid states
-    # S = np.delete(S,list(del_states), axis=0)
 
     return S
 
@@ -354,8 +304,6 @@ def prune_states(S, I):
     nvars = np.shape(S)[1] / 2
     init_states = len(S)
 
-    # print 'Initial number of states: ' + str(len(S))
-
     # stores the states to be deleted
     del_states = set([])
 
@@ -414,8 +362,6 @@ def prune_states(S, I):
 
     # deletes the invalid states
     S = np.delete(S, list(del_states), axis=0)
-    # print 'Number of states prunned: ' + str(init_states-len(S))
-    # print 'Final number of states: ' + str(len(S))
 
     return S
 

@@ -162,13 +162,8 @@ for i in range(len(diff)):
     d = diff.pop()
     print '%d: %s'% (i+1, d)
 
+# example trace of a possible path
 print_trace(G, S, 9, 17)
 
-# Test case
-# #
-# zstate = np.array([1, 2, 2, 2, 2, -1, -1, -1 ,-1 ,-1])
-# sstate=(np.array([1,1,1,1,1, -1,0,0,0,0]))
-#
-# tr = Transition(zstate,sstate)
-# print checkTransitionValidity(tr, I, P, der_dom)
-#
+# example trace of an impossible path
+print_trace(G, S, 25, 5)

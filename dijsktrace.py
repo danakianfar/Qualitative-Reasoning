@@ -67,7 +67,7 @@ def print_trace(G, S, s1, s2):
 
     except NetworkXNoPath as e:
 
-        print 'Error: Impossible to reach state ' + str(s2) + ' from state ' + str(s1) + '.'
+        print 'Error: Impossible to reach state ' + str(s2) + ' from state ' + str(s1) + '.\n'
 
     finally:
 
