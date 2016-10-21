@@ -149,14 +149,10 @@ def exogenous_change(S, transition, dom_der):
 
 
 def checkTransitionValidity(transition, I, P, dom_der, orig_ix, dest_ix):
-    # if orig_ix > 1:
-    #    return False
 
     if 2 in abs(transition.transition):
         print 'Rejected by epsilon continuity: %d ---> %d' % (orig_ix, dest_ix)
         return False
-
-    # s1 = np.asarray(prop_der(transition))
 
     s1 = prop_der(transition)
 
@@ -164,8 +160,6 @@ def checkTransitionValidity(transition, I, P, dom_der, orig_ix, dest_ix):
 
     if len(s1) == 0:
         return False
-
-    #print s1
 
     if transition.destination.tolist() in s1:
         # delta prop necessary and destination is a forced move
@@ -179,12 +173,9 @@ def checkTransitionValidity(transition, I, P, dom_der, orig_ix, dest_ix):
     S_prime = np.asarray(s2)
     s2 = partial_pruning2(S_prime, I).tolist()
 
-    #print s2
-
     s3 = []
     for s in s2:
         s3 += prop_prop(transition, s, P)
-
     s3 = [list(x) for x in set(tuple(x) for x in s3)]
 
 
@@ -192,42 +183,37 @@ def checkTransitionValidity(transition, I, P, dom_der, orig_ix, dest_ix):
     S_pruned = prune_states(S_prime, I)
 
     print 'Spruned='
-    print S_pruned
+    print S_pruned.tolist()
 
-    result = transition.destination.tolist() in S_pruned.tolist()
-    if result:
-        print 'Result of Inf-Prop prop: %s %d ---> %d' % (result, orig_ix, dest_ix)
+    print transition.destination.tolist()
+
+    if transition.destination.tolist() in S_pruned.tolist():
+        print 'Result of Inf-Prop prop: %s %d ---> %d' % (True, orig_ix, dest_ix)
+        return True
+    else:
+        # for state in S_pruned:
+        #     print state
+        #     tr_prime = Transition(state, transition.destination)
+        #     result = is_exogenous(tr_prime)
+        #     if result:
+        #         print 'One of S3 ' + str(result)
+        #         return True
+
+        result = is_exogenous(transition)
+        print 'Orig One Result of Inf-Prop prop: %s %d ---> %d' % (str(result), orig_ix, dest_ix)
+
         return result
 
-    #S_prime = [list(x) for x in set(tuple(x) for x in S_prime)]
 
-    for s_ix in range(len(S_pruned)):
+def is_exogenous(transition):
 
-        state = S_prime[s_ix]
-        print 'state='
-        print state
-        PS = prune_states(np.array([state]), I)
+    if sum(abs(transition.transition[val_idx])) != 0 or sum(abs(transition.transition[numVars+1:-1])) != 0 or transition.transition[numVars] == 0:
+        return False
 
-        print 'PS='
-        print PS
-        S_exog = exogenous_change(np.array([state]), transition, dom_der)
+    if (transition.destination[v] == 2 and transition.destination[dv] == -1) or (transition.destination[v] == 0 and transition.destination[dv] == 1):
+       return False
 
-        S_pruned2 = partial_pruning(S_exog, I)
-        print S_pruned2
-
-        result = transition.destination.tolist() in S_pruned2.tolist()
-        r1 = len(PS) == 1 and np.array_equal(PS[0],state)
-        if result and r1:
-            print 'Result of Exogenous: %s %d ---> %d' % (True, orig_ix, dest_ix)
-            return True
-
-    print '!!! Rej'
-    return False
-
-#    if not transition.destination.tolist() in S_pruned and not transition.origin.tolist() in S_pruned:
-#        # print '!!! Invalid by epsilon rule: forced to apply derivative on point->interval: \n O: %s \n T: %s \n D: %s \n -----' % (transition.origin, transition.transition, transition.destination)
-#        return False
-
+    return True
 
 def partial_pruning(S, I):
     # number of variables
