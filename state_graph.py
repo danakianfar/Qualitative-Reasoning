@@ -142,8 +142,9 @@ def exogenous_change(S, transition, dom_der):
     for state in S:
         for der in dom_der[0]:
             copy = state.copy()
-            copy[transition.numVars] = der
-            S_exog.append(copy.tolist())
+            if copy[transition.numVars] != der:
+                copy[transition.numVars] = der
+                S_exog.append(copy.tolist())
     return S_exog
 
 
@@ -181,23 +182,47 @@ def checkTransitionValidity(transition, I, P, dom_der, orig_ix, dest_ix):
     #print s2
 
     s3 = []
-
     for s in s2:
         s3 += prop_prop(transition, s, P)
 
+    s3 = [list(x) for x in set(tuple(x) for x in s3)]
+
+
     S_prime = np.asarray(s3)
+    S_pruned = prune_states(S_prime, I)
 
-    S_exog = np.asarray(exogenous_change(S_prime, transition, dom_der))
+    print 'Spruned='
+    print S_pruned
 
-    S_pruned = partial_pruning2(S_exog, I).tolist()
+    result = transition.destination.tolist() in S_pruned.tolist()
+    if result:
+        print 'Result of Inf-Prop prop: %s %d ---> %d' % (result, orig_ix, dest_ix)
+        return result
 
-    #print S_pruned
+    #S_prime = [list(x) for x in set(tuple(x) for x in S_prime)]
 
-    result = transition.destination.tolist() in S_pruned
-    print 'Result of Inf-Prop prop: %s %d ---> %d' % (result, orig_ix, dest_ix)
+    for s_ix in range(len(S_pruned)):
 
-    return result
+        state = S_prime[s_ix]
+        print 'state='
+        print state
+        PS = prune_states(np.array([state]), I)
 
+        print 'PS='
+        print PS
+        S_exog = exogenous_change(np.array([state]), transition, dom_der)
+
+        S_pruned2 = partial_pruning(S_exog, I)
+        print S_pruned2
+
+        result = transition.destination.tolist() in S_pruned2.tolist()
+        r1 = len(PS) == 1 and np.array_equal(PS[0],state)
+        if result and r1:
+            print 'Result of Exogenous: %s %d ---> %d' % (True, orig_ix, dest_ix)
+            return True
+
+    print '!!! Rej'
+    return False
 
 #    if not transition.destination.tolist() in S_pruned and not transition.origin.tolist() in S_pruned:
 #        # print '!!! Invalid by epsilon rule: forced to apply derivative on point->interval: \n O: %s \n T: %s \n D: %s \n -----' % (transition.origin, transition.transition, transition.destination)
