@@ -1,0 +1,73 @@
+++ Trace Description Start ++
+
+* Initial State 9 *
+I(+,⇓)
+V(+,⇓)
+H(+,⇓)
+P(+,⇓)
+O(+,⇓)
+
+* Transition *
+I: + ↦ 0
+δI: ⇓ ↦ 0
+V: + ↦ 0
+δV: ⇓ ↦ 0
+H: + ↦ 0
+δH: ⇓ ↦ 0
+P: + ↦ 0
+δP: ⇓ ↦ 0
+O: + ↦ 0
+δO: ⇓ ↦ 0
+
+* State 0 *
+I(0,0)
+V(0,0)
+H(0,0)
+P(0,0)
+O(0,0)
+
+* Transition *
+δI: 0 ↦ ⇑
+
+* State 1 *
+I(0,⇑)
+V(0,0)
+H(0,0)
+P(0,0)
+O(0,0)
+
+* Transition *
+I: 0 ↦ +
+δV: 0 ↦ ⇑
+δH: 0 ↦ ⇑
+δP: 0 ↦ ⇑
+δO: 0 ↦ ⇑
+
+* State 8 *
+I(+,⇑)
+V(0,⇑)
+H(0,⇑)
+P(0,⇑)
+O(0,⇑)
+
+* Transition *
+V: 0 ↦ +
+H: 0 ↦ +
+P: 0 ↦ +
+O: 0 ↦ +
+
+* Final State 17 *
+I(+,⇑)
+V(+,⇑)
+H(+,⇑)
+P(+,⇑)
+O(+,⇑)
+
+++ Trace Description End ++
+
+
+++ Trace Description Start ++
+
+Error: Impossible to reach state 5 from state 25.
+
+++ Trace Description End ++

@@ -113,13 +113,13 @@ for key in S_map.keys():
         print 'As origin'
         if mapping[key]['origin']:
             for i in mapping[key]['origin']:
-                print '\ttr: %s' % str(compactRepresentation(i.transition))+'    -->      dest: %d' % S_map[str(i.destination)]
+                print '\ttr: %s' % str((i.transition))+'    -->      dest: %d' % S_map[str(i.destination)]
             print '\n'
 
         print 'As destination'
         if mapping[key]['destination']:
             for i in mapping[key]['destination']:
-                print '\ttr: %s' % str(compactRepresentation(i.transition)) + '    <--      orig: %d' % S_map[str(i.origin)]
+                print '\ttr: %s' % str((i.transition)) + '    <--      orig: %d' % S_map[str(i.origin)]
 
     except KeyError as e:
         print 'State not found in transition graph!!'
