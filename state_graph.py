@@ -1,8 +1,7 @@
 import numpy as np
 import networkx as nx
-from sets import Set
+import pygraphviz as pgv
 from itertools import chain, combinations
-
 
 val_idx = range(5)
 delta_idx = range(5, 10)
@@ -25,12 +24,16 @@ def_plus = 1
 def_neg = -1
 def_amb = -9
 
+
 def compactRepresentation(vector):
-    return [vector[z] for z in [i,v,di,dv]]
+    return [vector[z] for z in [i, v, di, dv]]
+
 
 def compactTransition(transition):
+    return str(compactRepresentation(transition.origin)) + '   -->    ' + str(
+        compactRepresentation(transition.transition)) + '   -->    ' + str(
+        compactRepresentation(transition.destination))
 
-    return str(compactRepresentation(transition.origin))+'   -->    '+ str(compactRepresentation(transition.transition))+'   -->    '+ str(compactRepresentation(transition.destination))
 
 def d(x):
     if x == 0:
@@ -44,41 +47,39 @@ def d(x):
     elif x < -5 or x > 5:
         return '?'
     else:
-        print 'what? '+str(x)
+        print 'what? ' + str(x)
+
 
 class Transition():
-
     def __init__(self, origin, destination):
         self.transition = destination - origin
         self.origin = origin
         self.destination = destination
         self.numVars = self.transition.shape[0] / 2
 
-
     def prettyprint(self):
         res = '------\n'
         for j in range(len(val_idx)):
-            res += d(self.origin[j])+d(self.origin[j+numVars])+'\t'+d(self.transition[j])+d(self.transition[j+numVars])+'\t'+d(self.destination[j])+d(self.destination[j+numVars])+'\n'
+            res += d(self.origin[j]) + d(self.origin[j + numVars]) + '\t' + d(self.transition[j]) + d(
+                self.transition[j + numVars]) + '\t' + d(self.destination[j]) + d(self.destination[j + numVars]) + '\n'
         res += '------'
         return res
 
+
 def prop_der(transition):
-    copy = np.array(transition.origin.copy(),'float64')
-    #
-    # copy[np.where(copy < -5)] = 0
+    copy = np.array(transition.origin.copy(), 'float64')
 
     # split on interval->point, point->interval
     intervals = copy[val_idx] % 2
     points = 1 - intervals
 
-
     # split intervals to basis vectors
     eye = np.eye(transition.numVars)
-    bases = eye[np.where(intervals>0)]
+    bases = eye[np.where(intervals > 0)]
     possible_updates = []
 
     for combo in chain.from_iterable(combinations(bases, r) for r in range(len(bases) + 1)):
-        update = np.array(points,'float64')
+        update = np.array(points, 'float64')
         for x in list(combo):
             update += x
         possible_updates.append(update)
@@ -102,37 +103,38 @@ def prop_der(transition):
 
         possible_new_states.append(temp_state.tolist())
 
-    return np.array(possible_new_states,'float64')
+    possible_new_states = [list(x) for x in set(tuple(x) for x in possible_new_states)]
+
+    return np.array(possible_new_states, 'float64')
 
 
 def prop_inf(transition, state, I, dom_der):
-
     st_list = []
 
     for i in range(transition.numVars):
-        if sum(abs(I[:,i])) > 0:
+        if sum(abs(I[:, i])) > 0:
             for j in dom_der[i]:
                 copy = list(state)
-                copy[i+transition.numVars] = j
+                copy[i + transition.numVars] = j
                 st_list.append(copy)
 
     return st_list
 
 
 def prop_prop(transition, state, P):
-
     st_list = []
     state = np.array(state)
 
     for i in range(transition.numVars):
         for j in range(transition.numVars):
-            if P[i,j] != 0:
-                state[j + transition.numVars] = P[i,j] * state[i + transition.numVars]
+            if P[i, j] != 0:
+                state[j + transition.numVars] = P[i, j] * state[i + transition.numVars]
                 if abs(state[j + transition.numVars]) > 5:
                     state[j + transition.numVars] = -9
                 st_list.append(state.tolist())
 
     return st_list
+
 
 def exogenous_change(S, transition, dom_der):
     S_exog = []
@@ -145,34 +147,38 @@ def exogenous_change(S, transition, dom_der):
     return S_exog
 
 
-
 def checkTransitionValidity(transition, I, P, dom_der, orig_ix, dest_ix):
+    # if orig_ix > 1:
+    #    return False
 
     if 2 in abs(transition.transition):
         print 'Rejected by epsilon continuity: %d ---> %d' % (orig_ix, dest_ix)
         return False
 
-    s1 = np.asarray(prop_der(transition))
+    # s1 = np.asarray(prop_der(transition))
 
-    s1 = prune_states(s1, I).tolist()
+    s1 = prop_der(transition)
+
+    s1 = partial_pruning(s1, I).tolist()
 
     if len(s1) == 0:
         return False
 
+    #print s1
+
     if transition.destination.tolist() in s1:
         # delta prop necessary and destination is a forced move
         print 'Result of Delta-Prop: %s %d ---> %d' % (True, orig_ix, dest_ix)
-        if orig_ix == 11:
-            print 'hi'
         return True
 
     s2 = []
     for s in s1:
-        s2 += prop_inf(transition, s,I,dom_der)
+        s2 += prop_inf(transition, s, I, dom_der)
 
     S_prime = np.asarray(s2)
-    s2 = partial_pruning(S_prime, I).tolist()
+    s2 = partial_pruning2(S_prime, I).tolist()
 
+    #print s2
 
     s3 = []
 
@@ -183,45 +189,119 @@ def checkTransitionValidity(transition, I, P, dom_der, orig_ix, dest_ix):
 
     S_exog = np.asarray(exogenous_change(S_prime, transition, dom_der))
 
-    S_pruned = prune_states(S_exog, I).tolist()
+    S_pruned = partial_pruning2(S_exog, I).tolist()
+
+    #print S_pruned
 
     result = transition.destination.tolist() in S_pruned
     print 'Result of Inf-Prop prop: %s %d ---> %d' % (result, orig_ix, dest_ix)
 
-    if orig_ix == 11:
-        print 'hi'
-
     return result
+
 
 #    if not transition.destination.tolist() in S_pruned and not transition.origin.tolist() in S_pruned:
 #        # print '!!! Invalid by epsilon rule: forced to apply derivative on point->interval: \n O: %s \n T: %s \n D: %s \n -----' % (transition.origin, transition.transition, transition.destination)
 #        return False
 
 
-def partial_pruning(S,I):
+def partial_pruning(S, I):
     # number of variables
-    nvars = np.shape(S)[1]/2
+    nvars = np.shape(S)[1] / 2
     init_states = len(S)
 
-    #stores the states to be deleted
-    del_states = Set([])
+    # stores the states to be deleted
+    del_states = set([])
 
     for s_ix in range(len(S)):
         s = S[s_ix]
         for i in range(nvars):
             # if max value then can not have positive derivative
-            if s[i] == 2 and s[i+nvars] == 1:
+            if s[i] == 2 and s[i + nvars] == 1:
                 del_states.add(s_ix)
                 break
-            #if min value then can not have negative derivative
-            if s[i] == 0 and s[i+nvars] == -1:
+            # if min value then can not have negative derivative
+            if s[i] == 0 and s[i + nvars] == -1:
                 del_states.add(s_ix)
                 break
+
+        # checks for value correspondence in variables V H P O
+        for i in range(1, nvars):
+            for j in range(1, nvars):
+                if (s[i] != s[j]):
+                    del_states.add(s_ix)
+                    break
 
     S = np.delete(S, list(del_states), axis=0)
 
-    del_states1 = Set([])
-    del_states2 = Set([])
+    # del_states1 = Set([])
+    # del_states2 = Set([])
+    #
+    # for s_ix in range(len(S)):
+    #     s = S[s_ix]
+    #
+    #     # checks for influence relationships
+    #     for j in range(nvars):
+    #
+    #         # if nothing influences the variable, it can change freely
+    #         if sum(abs(I[:, j])) == 0:
+    #             continue
+    #
+    #         influences = Set([])
+    #
+    #         for i in range(nvars):
+    #             # checks it there is an influence and the variable has value diff to zero
+    #             if I[i][j] != 0 and s[i] != 0:
+    #                 influences.add(I[i][j])
+    #
+    #         # if no influences on the variable and no variables have values, derivative has to be zero
+    #         if len(influences) == 0 and sum(abs(s[0:nvars])) == 0 and s[j+nvars] != 0 :
+    #             del_states1.add(s_ix)
+    #             continue
+    #
+    #         # all influences have same sign, derivative has to be in that direction
+    #         if len(influences) == 1 and influences.pop() != s[j + nvars]:
+    #             del_states2.add(s_ix)
+    #             continue
+    #
+    # del_states = del_states1 | del_states2
+    #
+    # # deletes the invalid states
+    # S = np.delete(S,list(del_states), axis=0)
+
+    return S
+
+
+def partial_pruning2(S, I):
+    # number of variables
+    nvars = np.shape(S)[1] / 2
+    init_states = len(S)
+
+    # stores the states to be deleted
+    del_states = set([])
+
+    for s_ix in range(len(S)):
+        s = S[s_ix]
+        for i in range(nvars):
+            # if max value then can not have positive derivative
+            if s[i] == 2 and s[i + nvars] == 1:
+                del_states.add(s_ix)
+                break
+            # if min value then can not have negative derivative
+            if s[i] == 0 and s[i + nvars] == -1:
+                del_states.add(s_ix)
+                break
+
+        # checks for value correspondence in variables V H P O
+        for i in range(1, nvars):
+            for j in range(1, nvars):
+                if (s[i] != s[j]):
+                    del_states.add(s_ix)
+                    break
+
+    S = np.delete(S, list(del_states), axis=0)
+
+    del_states1 = set([])
+    del_states2 = set([])
 
     for s_ix in range(len(S)):
         s = S[s_ix]
@@ -233,7 +313,7 @@ def partial_pruning(S,I):
             if sum(abs(I[:, j])) == 0:
                 continue
 
-            influences = Set([])
+            influences = set([])
 
             for i in range(nvars):
                 # checks it there is an influence and the variable has value diff to zero
@@ -241,7 +321,7 @@ def partial_pruning(S,I):
                     influences.add(I[i][j])
 
             # if no influences on the variable and no variables have values, derivative has to be zero
-            if len(influences) == 0 and sum(abs(s[0:nvars])) == 0 and s[j+nvars] != 0 :
+            if len(influences) == 0 and sum(abs(s[0:nvars])) == 0 and s[j + nvars] != 0:
                 del_states1.add(s_ix)
                 continue
 
@@ -253,30 +333,30 @@ def partial_pruning(S,I):
     del_states = del_states1 | del_states2
 
     # deletes the invalid states
-    S = np.delete(S,list(del_states), axis=0)
+    S = np.delete(S, list(del_states), axis=0)
 
     return S
 
 
-def prune_states(S,I):
+def prune_states(S, I):
     # number of variables
-    nvars = np.shape(S)[1]/2
+    nvars = np.shape(S)[1] / 2
     init_states = len(S)
 
     # print 'Initial number of states: ' + str(len(S))
 
-    #stores the states to be deleted
-    del_states = Set([])
+    # stores the states to be deleted
+    del_states = set([])
 
     for s_ix in range(len(S)):
         s = S[s_ix]
         for i in range(nvars):
             # if max value then can not have positive derivative
-            if s[i] == 2 and s[i+nvars] == 1:
+            if s[i] == 2 and s[i + nvars] == 1:
                 del_states.add(s_ix)
                 break
-            #if min value then can not have negative derivative
-            if s[i] == 0 and s[i+nvars] == -1:
+            # if min value then can not have negative derivative
+            if s[i] == 0 and s[i + nvars] == -1:
                 del_states.add(s_ix)
                 break
 
@@ -289,8 +369,8 @@ def prune_states(S,I):
 
     S = np.delete(S, list(del_states), axis=0)
 
-    del_states1 = Set([])
-    del_states2 = Set([])
+    del_states1 = set([])
+    del_states2 = set([])
 
     for s_ix in range(len(S)):
         s = S[s_ix]
@@ -302,7 +382,7 @@ def prune_states(S,I):
             if sum(abs(I[:, j])) == 0:
                 continue
 
-            influences = Set([])
+            influences = set([])
 
             for i in range(nvars):
                 # checks it there is an influence and the variable has value diff to zero
@@ -310,7 +390,7 @@ def prune_states(S,I):
                     influences.add(I[i][j])
 
             # if no influences on the variable and no variables have values, derivative has to be zero
-            if len(influences) == 0  and s[j+nvars] != 0 :
+            if len(influences) == 0 and s[j + nvars] != 0:
                 del_states1.add(s_ix)
                 break
 
@@ -322,7 +402,7 @@ def prune_states(S,I):
     del_states = del_states1 | del_states2
 
     # deletes the invalid states
-    S = np.delete(S,list(del_states), axis=0)
+    S = np.delete(S, list(del_states), axis=0)
     # print 'Number of states prunned: ' + str(init_states-len(S))
     # print 'Final number of states: ' + str(len(S))
 
@@ -331,19 +411,53 @@ def prune_states(S,I):
 
 def create_graph(S, I, P, dom_der):
     # creates a directed graph
+
+    print '++ Transition Validity Log Start ++\n'
+    G2 = pgv.AGraph(directed=True, overlap=False, splines=True, sep=+1.2, normalize=True, smoothing='avg_dist')
+
     G = nx.MultiDiGraph()
     n_states = len(S)
     T = []
 
+    edgelist = []
     for orig_ix in range(n_states):
         for dest_ix in range(n_states):
             # creates transition from orig to dest
-            tr = Transition(S[orig_ix],S[dest_ix])
+            tr = Transition(S[orig_ix], S[dest_ix])
 
-            #if transition is valid, then add it to the graph
-            if checkTransitionValidity(tr ,I, P, dom_der, orig_ix, dest_ix):
+            # if transition is valid, then add it to the graph
+            if checkTransitionValidity(tr, I, P, dom_der, orig_ix, dest_ix):
                 T.append(tr)
                 # print len(T)
-                G.add_edge(orig_ix,dest_ix)
+                G.add_edge(orig_ix, dest_ix)
+                edgelist.append([orig_ix, dest_ix])
 
-    return G, T
+    G2.add_edges_from(edgelist)
+
+    for pair in edgelist:
+        col = 'forestgreen'
+        if pair[0] % 3 == 1:
+            col = 'dodgerblue3'
+        if pair[0] % 3 == 2:
+            col = 'black'
+        G2.get_edge(pair[0], pair[-1]).attr['color'] = col
+        G2.get_edge(pair[0], pair[-1]).attr['constraint'] = False
+
+    pos1 = nx.spring_layout(G)
+
+    for k, v in pos1.iteritems():
+        G2.get_node(k).attr['fontsize'] = 25
+        G2.get_node(k).attr['width'] = 0.5
+        G2.get_node(k).attr['shape'] = 'circle'
+        G2.get_node(k).attr['color'] = 'red'
+
+
+    G2.layout(prog='neato')
+    fname = 'state_graph.png'
+    G2.draw(fname)
+
+    print '\n++ Transition Validity Log End ++'
+
+    print '\n*** State graph stored in file: ' + fname +' ***\n'
+
+    return G, T, G2

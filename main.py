@@ -63,13 +63,17 @@ P = np.array([[0, 0, 0, 0, 0],
 # Get all possible combinations of states and derivatives
 S = get_full_envisionment(varDomain=var_dom, derDomain=der_dom, numOfVars=5)
 
+numstates0 = str(len(S))
+
+
 # Get all valid states
 S = prune_states(S,I)
 
-# print S
+numstates1 = str(len(S))
+
 
 # Create graph with all possible valid transition between the states
-G, T = create_graph(S, I, P, der_dom)
+G, T, G2 = create_graph(S, I, P, der_dom)
 
 
 # Mapping of origin->destination and vice versa
@@ -87,12 +91,14 @@ for trans in T:
     mapping[str(trans.destination)]['destination'].append(trans)
 
 
-print '\n\n Mapping of all states and destinations'
+print '\n\n Description of all states and destinations\n'
+
+print ' **** '
 
 for i,s in enumerate(S):
     print '%d %s' % (i,s)
     i += 1
-print ' **** '
+print ' **** \n'
 
 S_map = {}
 
@@ -107,7 +113,7 @@ for key in S_map.keys():
         print 'As origin'
         if mapping[key]['origin']:
             for i in mapping[key]['origin']:
-                print '\ttr: %s' % str(compactRepresentation(i.transition))+'    -->      des: %d' % S_map[str(i.destination)]
+                print '\ttr: %s' % str(compactRepresentation(i.transition))+'    -->      dest: %d' % S_map[str(i.destination)]
             print '\n'
 
         print 'As destination'
@@ -120,55 +126,43 @@ for key in S_map.keys():
 
     print '\n-------------------------------\n'
 
-print ' -----'
-origins = Set([])
-destinations = Set([])
-transitions = Set([])
-total = Set([])
+
+origins = set([])
+destinations = set([])
+transitions = set([])
+total = set([])
 
 for t in T:
     total.add(str(t.origin))
     total.add(str(t.destination))
+    destinations.add(str(t.destination))
+    origins.add(str(t.origin))
     transitions.add(str(t.origin)+str(t.transition)+str(t.destination))
 
-    origins.add(str(t.origin))
-    destinations.add(str(t.destination))
-    #print t.prettyprint()
+print '\n**** State Graph Statistics ****'
+print 'Initial number of states: ' + numstates0
+print 'Number of valid states: ' + numstates1
+print 'Number of states in graph: ' + str(len(total))
+print 'Number of origin states: ' + str(len(origins))
+print 'Number of destination states: ' + str(len(destinations))
+print 'Number of transitions: ' + str(len(transitions))
 
-print 'Total: ' + str(len(total))
-print 'Origin: ' + str(len(origins))
-print 'Destinations: ' + str(len(destinations))
-print 'Transitions: ' + str(len(transitions))
+s_loop = []
+for x in G.selfloop_edges():
+    s_loop.append(x[0])
+print '\n**** Self Looping Nodes: %s ****' % str(len(s_loop))
+if len(s_loop)>0:
+    print s_loop
 
-print ' After transition check **** '
-
-
-print ' Deleted states due to transition checks **** '
-
+print '\n**** States removed from graph due to transition validity checking: %s ****' % str(float(numstates1) - len(S))
 strS = [str(x) for x in S]
-
-states = Set(strS)
+states = set(strS)
 diff = states - total
 for i in range(len(diff)):
     d = diff.pop()
     print '%d: %s'% (i+1, d)
-# print ' **** '
 
-pos = nx.circular_layout(G)
-
-print_trace(G, S, 0, 2)
-
-for v in G.nodes():
-    G.node[v]['state']=v
-
-
-print G.selfloop_edges()
-
-nx.draw(G, pos)
-node_labels = nx.get_node_attributes(G,'state')
-nx.draw_networkx_labels(G, pos, labels = node_labels)
-#plt.savefig('this.png')
-plt.show()
+print_trace(G, S, 9, 17)
 
 # Test case
 # #
@@ -178,4 +172,3 @@ plt.show()
 # tr = Transition(zstate,sstate)
 # print checkTransitionValidity(tr, I, P, der_dom)
 #
-

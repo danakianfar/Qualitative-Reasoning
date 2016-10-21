@@ -14,7 +14,7 @@ der_names = {0: '0', 1 : '⇑', -1 : '⇓', -9 : '?'}
 def describe_state(state, state_num, var_names, dom_names, der_names, label = ''):
     nvars = len(state)/2
 
-    print '* ' + label + ' State ' + str(state_num) + ' *'
+    print '* ' + label + 'State ' + str(state_num) + ' *'
 
     for i in range(nvars):
         print var_names[i] + '(' + dom_names[state[i]] + ',' + der_names[state[i + nvars]] + ')'
@@ -44,12 +44,12 @@ def describe_transition(trans, var_names, dom_names, der_names):
 
 def print_trace(G, S, s1, s2):
 
-    print '\n + Trace Description Started + '
+    print '\n++ Trace Description Start ++\n'
 
     try:
         tr_list = nx.dijkstra_path(G, s1, s2)
 
-        describe_state(S[tr_list[0]], s1, var_names, dom_names, der_names, 'Initial')
+        describe_state(S[tr_list[0]], s1, var_names, dom_names, der_names, 'Initial ')
 
         for i in range(1, len(tr_list)):
             istate = S[tr_list[i - 1]]
@@ -61,10 +61,14 @@ def print_trace(G, S, s1, s2):
 
             label = ''
             if tr_list[i] == s2:
-                label = 'Final'
+                label = 'Final '
 
             describe_state(fstate, tr_list[i], var_names, dom_names, der_names, label)
 
     except NetworkXNoPath as e:
 
         print 'Error: Impossible to reach state ' + str(s2) + ' from state ' + str(s1) + '.'
+
+    finally:
+
+        print '++ Trace Description End ++\n'
