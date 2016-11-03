@@ -1,2 +1,2 @@
 # qreasoning
-Artificial Intelligence @ UvA KR project on Qualitative Reasoning
+Qualitative Reasoning project for the Knowledge Representation course @ UvA
